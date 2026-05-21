@@ -1,0 +1,89 @@
+-- Student Performance Analyzer (SPA) Enhanced Queries
+-- File: PRN_queries.txt
+
+-- 1. Create database schema if not exists
+CREATE DATABASE IF NOT EXISTS spa_enhanced_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 2. Authenticate admin user
+SELECT id, username, password_hash, role, is_active FROM users WHERE username = ?;
+
+-- 3. Authenticate faculty user
+SELECT prn, name, password_hash, is_active FROM faculty WHERE prn = ?;
+
+-- 4. Authenticate student user
+SELECT prn, name, password_hash, is_active FROM students WHERE prn = ?;
+
+-- 5. Add a student record
+INSERT INTO students (prn, password_hash, name, department) VALUES (?, ?, ?, ?);
+
+-- 6. Read all student records
+SELECT prn, name, department, marks, is_active, enrolled_at FROM students;
+
+-- 7. Search students by department name
+SELECT prn, name, department, marks, enrolled_at FROM students WHERE LOWER(department) = LOWER(?);
+
+-- 8. Update student profile details
+UPDATE students SET name = ?, department = ?, is_active = ? WHERE prn = ?;
+
+-- 9. Delete student account
+DELETE FROM students WHERE prn = ?;
+
+-- 10. View own student record stats
+SELECT prn, name, department, marks FROM students WHERE prn = ?;
+
+-- 11. View own student enrolled subjects and marks
+SELECT s.code, s.name, ss.marks FROM student_subjects ss JOIN subjects s ON s.id = ss.subject_id WHERE ss.student_prn = ?;
+
+-- 12. Retrieve dashboard summary statistics
+SELECT COUNT(*), AVG(marks), MAX(marks), MIN(marks) FROM students;
+
+-- 13. Retrieve dashboard grade band distribution
+SELECT SUM(CASE WHEN marks >= 90 THEN 1 ELSE 0 END) AS A, SUM(CASE WHEN marks >= 75 AND marks < 90 THEN 1 ELSE 0 END) AS B, SUM(CASE WHEN marks >= 60 AND marks < 75 THEN 1 ELSE 0 END) AS C, SUM(CASE WHEN marks >= 40 AND marks < 60 THEN 1 ELSE 0 END) AS D, SUM(CASE WHEN marks < 40 THEN 1 ELSE 0 END) AS F FROM students;
+
+-- 14. View department analytics groups
+SELECT department, COUNT(*) AS students, AVG(marks), MAX(marks), MIN(marks) FROM students GROUP BY department ORDER BY department;
+
+-- 15. View top performing students (marks >= 60)
+SELECT prn, name, department, marks FROM students WHERE marks >= 60 ORDER BY marks DESC, name LIMIT 10;
+
+-- 16. View department leaderboard view summary
+SELECT department, total_students, average_marks, highest_marks, lowest_marks FROM vw_department_leaderboard;
+
+-- 17. Add bonus marks to a department
+UPDATE students SET marks = LEAST(marks + ?, 100) WHERE LOWER(department) = LOWER(?);
+
+-- 18. Export high performers (above average) to CSV
+SELECT prn, name, department, marks FROM students WHERE marks > (SELECT AVG(marks) FROM students) ORDER BY marks DESC, name;
+
+-- 19. Create system user account
+INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?);
+
+-- 20. List system admin user accounts
+SELECT username, role, IF(is_active, 'active', 'disabled') AS status, created_at FROM users ORDER BY id;
+
+-- 21. Toggle user active status
+UPDATE users SET is_active = NOT is_active WHERE username = ?;
+
+-- 22. Log system security audit event
+INSERT INTO audit_log (user_id, action, details) VALUES (?, ?, ?);
+
+-- 23. View system security audit logs
+SELECT id, action, details, timestamp FROM audit_log ORDER BY timestamp DESC, id DESC LIMIT 50;
+
+-- 24. Create course subject
+INSERT INTO subjects (code, name, batch) VALUES (?, ?, ?);
+
+-- 25. Enroll student in subject
+INSERT INTO student_subjects (subject_id, student_prn) VALUES (?, ?);
+
+-- 26. Assign faculty to subject
+INSERT INTO faculty_subjects (faculty_prn, subject_id) VALUES (?, ?);
+
+-- 27. Update student subject grade
+UPDATE student_subjects SET marks = ? WHERE subject_id = ? AND student_prn = ?;
+
+-- 28. Submit daily attendance sheet record
+INSERT INTO attendance (subject_id, student_prn, date, status) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE status = VALUES(status);
+
+-- 29. Update student overall average rolling mark
+UPDATE students SET marks = (SELECT COALESCE(AVG(marks), 0.00) FROM student_subjects WHERE student_prn = ? AND marks IS NOT NULL) WHERE prn = ?;

@@ -1,0 +1,28 @@
+# Python bytecode and cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyInstaller build temporary directory
+build/
+
+# PyInstaller distribution directory: ignore all files in dist/ except the precompiled executable
+dist/*
+!dist/PRN_spa.exe
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE and system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Subzip target directory and zip archives
+subzip/
+*.zip
