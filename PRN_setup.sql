@@ -127,6 +127,74 @@ INSERT INTO users (username, password_hash, role)
 VALUES ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin')
 ON DUPLICATE KEY UPDATE id=id;
 
+-- Sample Faculty (default password: password123)
+INSERT INTO faculty (prn, password_hash, name, department) VALUES 
+('25006011001', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Dr. Rajesh Kumar', 'Computer Science'),
+('25007021002', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Prof. Sunita Sharma', 'Information Technology'),
+('26006031003', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Dr. Amit Patel', 'Computer Science')
+ON DUPLICATE KEY UPDATE name=VALUES(name), department=VALUES(department);
+
+-- Sample Students (default password: student123)
+INSERT INTO students (prn, password_hash, name, department, marks) VALUES 
+('25006011101', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Rohan Verma', 'Computer Science', 87.67),
+('25006011102', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Priya Nair', 'Computer Science', 91.33),
+('25007021201', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Aarav Mehta', 'Information Technology', 78.00),
+('25007021202', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Sneha Reddy', 'Information Technology', 84.00),
+('26006031301', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Vikram Singh', 'Computer Science', 72.00)
+ON DUPLICATE KEY UPDATE name=VALUES(name), department=VALUES(department), marks=VALUES(marks);
+
+-- Sample Subjects
+INSERT INTO subjects (id, code, name, batch) VALUES 
+(1, 'CS101', 'Data Structures & Algorithms', 'Batch-A'),
+(2, 'CS102', 'Database Management Systems', 'Batch-A'),
+(3, 'IT101', 'Web Development', 'Batch-B'),
+(4, 'CS103', 'Operating Systems', 'Batch-C'),
+(5, 'CS104', 'Computer Networks', 'Batch-A')
+ON DUPLICATE KEY UPDATE name=VALUES(name), code=VALUES(code), batch=VALUES(batch);
+
+-- Sample Faculty Assignments
+INSERT INTO faculty_subjects (faculty_prn, subject_id) VALUES 
+('25006011001', 1),
+('25006011001', 2),
+('25007021002', 3),
+('26006031003', 4),
+('25006011001', 5)
+ON DUPLICATE KEY UPDATE faculty_prn=faculty_prn;
+
+-- Sample Student Enrollments & Marks
+INSERT INTO student_subjects (subject_id, student_prn, marks) VALUES 
+(1, '25006011101', 85.00),
+(2, '25006011101', 90.00),
+(1, '25006011102', 92.00),
+(2, '25006011102', 88.00),
+(3, '25007021201', 78.00),
+(3, '25007021202', 84.00),
+(4, '26006031301', 72.00),
+(5, '25006011101', 88.00),
+(5, '25006011102', 94.00)
+ON DUPLICATE KEY UPDATE marks=VALUES(marks);
+
+-- Sample Attendance
+INSERT INTO attendance (subject_id, student_prn, date, status) VALUES 
+(1, '25006011101', '2026-05-15', 'Present'),
+(1, '25006011101', '2026-05-18', 'Present'),
+(1, '25006011101', '2026-05-20', 'Absent'),
+(2, '25006011101', '2026-05-15', 'Present'),
+(2, '25006011101', '2026-05-18', 'Present'),
+(1, '25006011102', '2026-05-15', 'Present'),
+(1, '25006011102', '2026-05-18', 'Present'),
+(1, '25006011102', '2026-05-20', 'Present'),
+(2, '25006011102', '2026-05-15', 'Present'),
+(2, '25006011102', '2026-05-18', 'Absent'),
+(3, '25007021201', '2026-05-15', 'Present'),
+(3, '25007021201', '2026-05-18', 'Present'),
+(3, '25007021202', '2026-05-15', 'Present'),
+(3, '25007021202', '2026-05-18', 'Absent'),
+(4, '26006031301', '2026-05-15', 'Present'),
+(5, '25006011101', '2026-05-22', 'Present'),
+(5, '25006011102', '2026-05-22', 'Absent')
+ON DUPLICATE KEY UPDATE status=VALUES(status);
+
 -- 11. Application Roles and Privileges Setup
 CREATE USER IF NOT EXISTS 'spa_admin'@'localhost' IDENTIFIED BY 'spa_admin123';
 GRANT SELECT, INSERT, UPDATE, DELETE ON spa_enhanced_db.students TO 'spa_admin'@'localhost';

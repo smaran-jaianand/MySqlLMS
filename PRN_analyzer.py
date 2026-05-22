@@ -1,6 +1,3 @@
-# Student Performance Analyzer (CLI Version)
-# File name: PRN_student_performance_analyzer.py (renamed to PRN_analyzer.py for deliverables)
-
 import csv
 import datetime as dt
 import hashlib
@@ -16,9 +13,9 @@ except ImportError:
     mysql = None
     Error = Exception
 
-# ============================
-# Database Connection Function
-# ============================
+
+# Database Conn
+
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
@@ -26,9 +23,9 @@ DB_CONFIG = {
     "database": "spa_enhanced_db"
 }
 
-# ============================
-# Global session — populate on successful login
-# ============================
+
+# Global session
+
 current_user = {
     "id": None, 
     "username": None,
@@ -351,6 +348,80 @@ def ensure_database_setup():
                         cursor.execute("""
                             INSERT INTO users (username, password_hash, role) 
                             VALUES ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin');
+                        """)
+
+                    # Insert sample data if no faculty exist (indicating fresh db setup)
+                    cursor.execute("SELECT COUNT(*) AS c FROM faculty")
+                    f_count = cursor.fetchone()
+                    if f_count[0] == 0:
+                        print_message("Populating database with sample students, faculty, subjects, and linkages...", "info")
+                        # 1. Faculty (default password: password123)
+                        cursor.execute("""
+                            INSERT IGNORE INTO faculty (prn, password_hash, name, department) VALUES 
+                            ('25006011001', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Dr. Rajesh Kumar', 'Computer Science'),
+                            ('25007021002', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Prof. Sunita Sharma', 'Information Technology'),
+                            ('26006031003', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Dr. Amit Patel', 'Computer Science');
+                        """)
+                        # 2. Students (default password: student123)
+                        cursor.execute("""
+                            INSERT IGNORE INTO students (prn, password_hash, name, department, marks) VALUES 
+                            ('25006011101', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Rohan Verma', 'Computer Science', 87.67),
+                            ('25006011102', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Priya Nair', 'Computer Science', 91.33),
+                            ('25007021201', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Aarav Mehta', 'Information Technology', 78.00),
+                            ('25007021202', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Sneha Reddy', 'Information Technology', 84.00),
+                            ('26006031301', '703b0a3d6ad75b649a28adde7d83c6251da457549263bc7ff45ec709b0a8448b', 'Vikram Singh', 'Computer Science', 72.00);
+                        """)
+                        # 3. Subjects
+                        cursor.execute("""
+                            INSERT IGNORE INTO subjects (id, code, name, batch) VALUES 
+                            (1, 'CS101', 'Data Structures & Algorithms', 'Batch-A'),
+                            (2, 'CS102', 'Database Management Systems', 'Batch-A'),
+                            (3, 'IT101', 'Web Development', 'Batch-B'),
+                            (4, 'CS103', 'Operating Systems', 'Batch-C'),
+                            (5, 'CS104', 'Computer Networks', 'Batch-A');
+                        """)
+                        # 4. Faculty Subjects assignments
+                        cursor.execute("""
+                            INSERT IGNORE INTO faculty_subjects (faculty_prn, subject_id) VALUES 
+                            ('25006011001', 1),
+                            ('25006011001', 2),
+                            ('25007021002', 3),
+                            ('26006031003', 4),
+                            ('25006011001', 5);
+                        """)
+                        # 5. Student Subjects enrollments & marks
+                        cursor.execute("""
+                            INSERT IGNORE INTO student_subjects (subject_id, student_prn, marks) VALUES 
+                            (1, '25006011101', 85.00),
+                            (2, '25006011101', 90.00),
+                            (1, '25006011102', 92.00),
+                            (2, '25006011102', 88.00),
+                            (3, '25007021201', 78.00),
+                            (3, '25007021202', 84.00),
+                            (4, '26006031301', 72.00),
+                            (5, '25006011101', 88.00),
+                            (5, '25006011102', 94.00);
+                        """)
+                        # 6. Attendance records
+                        cursor.execute("""
+                            INSERT IGNORE INTO attendance (subject_id, student_prn, date, status) VALUES 
+                            (1, '25006011101', '2026-05-15', 'Present'),
+                            (1, '25006011101', '2026-05-18', 'Present'),
+                            (1, '25006011101', '2026-05-20', 'Absent'),
+                            (2, '25006011101', '2026-05-15', 'Present'),
+                            (2, '25006011101', '2026-05-18', 'Present'),
+                            (1, '25006011102', '2026-05-15', 'Present'),
+                            (1, '25006011102', '2026-05-18', 'Present'),
+                            (1, '25006011102', '2026-05-20', 'Present'),
+                            (2, '25006011102', '2026-05-15', 'Present'),
+                            (2, '25006011102', '2026-05-18', 'Absent'),
+                            (3, '25007021201', '2026-05-15', 'Present'),
+                            (3, '25007021201', '2026-05-18', 'Present'),
+                            (3, '25007021202', '2026-05-15', 'Present'),
+                            (3, '25007021202', '2026-05-18', 'Absent'),
+                            (4, '26006031301', '2026-05-15', 'Present'),
+                            (5, '25006011101', '2026-05-22', 'Present'),
+                            (5, '25006011102', '2026-05-22', 'Absent');
                         """)
                     conn.commit()
                     print_message("Database schema successfully auto-initialized!", "success")

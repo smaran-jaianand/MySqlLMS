@@ -26,3 +26,4 @@ Thumbs.db
 # Subzip target directory and zip archives
 subzip/
 *.zip
+*.tar
